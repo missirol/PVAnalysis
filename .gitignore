@@ -1,0 +1,12 @@
+*~
+*.root
+*.pdf
+*.png
+*.jpeg
+*.tar.gz
+*.xz
+*.zip
+*.pyc
+__init__.py
+tmp*
+output_*/
