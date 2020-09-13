@@ -1678,6 +1678,7 @@ std::map<std::string, TH1*> PrimaryVertexAnalyzer4PU::bookVertexHistograms(TDire
 			   "splitvtxselfrompu",
 			   "matchedsignalvtxsel",
 			   "matchedpuvtxsel",
+			   "splitvtxselfromsignalhighpt",
                            //"hipu",
                            //"tail",
                            //"tailzgt1",
@@ -1694,6 +1695,7 @@ std::map<std::string, TH1*> PrimaryVertexAnalyzer4PU::bookVertexHistograms(TDire
     addn(h, new TH1F("chi2overntk", "chi**2", 100, 0., 4.));
     addn(h, new TH1F("r", "r", 100, 0., 0.1));
     addn(h, new TH1F("index", "index", 200, 0., 200.));
+    addn(h, new TH1F("maxfrac", "maxfrac", 100, -1., 1.));
     addn(h, new TH2F("logsumpt2vsindex", "log sumpt2 vs index", 200, 0., 200., 200, -0.5, 4.5)); // remove
     addn(h, new TProfile("sumpt2vsindex", "mean sumpt2 vs index", 200, 0., 200.,  0., 1e5)); //remove
     addn(h, new TH2F("logndofvsindex", "log ndof vs index", 200, 0., 200., 100, 0., 3.));
@@ -2460,24 +2462,24 @@ void PrimaryVertexAnalyzer4PU::bookTrackHistograms(const char * directory_name)
           "zpulltrkt_primselmatched", "reconstructed z- generated z for primary tracks with timing", 200, -10., 10.));
   add(hTrk, new TH1F("zpulltprimsel", "reconstructed z- generated z for primary tracks with timing", 200, -10., 10.));
   add(hTrk, new TH1F("zrestrk_primselmatched", "reconstructed z- generated z for primary tracks", 200, -0.2, 0.2));
+
   add(hTrk, new TH2F("zpulltprimselvseta", "", 48, -2.4, 2.4, 200, -10., 10.));
-  add(hTrk, new TH2F("zpulltprimselvseta_dz000-100", "", 48, -2.4, 2.4, 200, -10., 10.));
-  add(hTrk, new TH2F("zpulltprimselvseta_dz100-200", "", 48, -2.4, 2.4, 200, -10., 10.));
-  add(hTrk, new TH2F("zpulltprimselvseta_dz200-500", "", 48, -2.4, 2.4, 200, -10., 10.));
-  add(hTrk, new TH2F("zpulltprimselvseta_dz500-1000", "", 48, -2.4, 2.4, 200, -10., 10.));
-  add(hTrk, new TH2F("zpulltprimselvseta_dz1000-2000", "", 48, -2.4, 2.4, 200, -10., 10.));
+  for(auto bin = 0u; bin < trkdzbin_.size(); bin++){
+    add(hTrk, new TH2F(Form("zpulltprimselvseta_%s", trkdzbin_[bin].c_str()), "", 48, -2.4, 2.4, 200, -10., 10.));
+    add(hTrk, new TH2F(Form("zpulltprimselbpxlt2vseta_%s", trkdzbin_[bin].c_str()), "", 48, -2.4, 2.4, 200, -10., 10.));
+    add(hTrk, new TH2F(Form("zpulltprimselbpxgt2vseta_%s", trkdzbin_[bin].c_str()), "", 48, -2.4, 2.4, 200, -10., 10.));
+    add(hTrk, new TH2F(Form("zpulltprimselvslogpt_%s", trkdzbin_[bin].c_str()), "", 40, -1., 3., 200, -10., 10.));
+    add(hTrk, new TProfile(Form("ztailtprimselvslogpt_%s",trkdzbin_[bin].c_str()) , "", 40, -1., 3., 0., 2.));
+    add(hTrk, new TProfile(Form("ztailtprimselvslogpt_etahi_%s",trkdzbin_[bin].c_str()) , "", 40, -1., 3., 0., 2.));
+    add(hTrk, new TProfile(Form("ztailtprimselvslogpt_etalo_%s",trkdzbin_[bin].c_str()) , "", 40, -1., 3., 0., 2.));
+    add(hTrk, new TH2F(Form("ztailtprimselvslogpteta_%s", trkdzbin_[bin].c_str()), "", 48, -2.4, 2.4, 40, -1., 3.));
+    add(hTrk, new TH2F(Form("tprimselvslogpteta_%s", trkdzbin_[bin].c_str()), "", 48, -2.4, 2.4, 40, -1., 3.));
+  }
 
-  add(hTrk, new TH2F("zpulltprimselbpxlt2vseta_dz000-100", "", 48, -2.4, 2.4, 200, -10., 10.));
-  add(hTrk, new TH2F("zpulltprimselbpxlt2vseta_dz100-200", "", 48, -2.4, 2.4, 200, -10., 10.));
-  add(hTrk, new TH2F("zpulltprimselbpxlt2vseta_dz200-500", "", 48, -2.4, 2.4, 200, -10., 10.));
-  add(hTrk, new TH2F("zpulltprimselbpxlt2vseta_dz500-1000", "", 48, -2.4, 2.4, 200, -10., 10.));
-  add(hTrk, new TH2F("zpulltprimselbpxlt2vseta_dz1000-2000", "", 48, -2.4, 2.4, 200, -10., 10.));
+  add(hTrk, new TH2F("zpulltprimselvslogpt", "", 40, -1., 3., 200, -10., 10.));
 
-  add(hTrk, new TH2F("zpulltprimselbpxgt2vseta_dz000-100", "", 48, -2.4, 2.4, 200, -10., 10.));
-  add(hTrk, new TH2F("zpulltprimselbpxgt2vseta_dz100-200", "", 48, -2.4, 2.4, 200, -10., 10.));
-  add(hTrk, new TH2F("zpulltprimselbpxgt2vseta_dz200-500", "", 48, -2.4, 2.4, 200, -10., 10.));
-  add(hTrk, new TH2F("zpulltprimselbpxgt2vseta_dz500-1000", "", 48, -2.4, 2.4, 200, -10., 10.));
-  add(hTrk, new TH2F("zpulltprimselbpxgt2vseta_dz1000-2000", "", 48, -2.4, 2.4, 200, -10., 10.));
+  add(hTrk, new TH2F("ztailtprimselvslogpteta", "", 48, -2.4, 2.4, 40, -1., 3.));
+  add(hTrk, new TH2F("tprimselvslogpteta", "", 48, -2.4, 2.4, 40, -1., 3.));
 
   add(hTrk,
       new TH1F("zrestrkt_primselmatched",
@@ -4043,6 +4045,22 @@ double PrimaryVertexAnalyzer4PU::vertex_ptmax2(const reco::Vertex& v) {
 }
 
 
+double PrimaryVertexAnalyzer4PU::vertex_yum(const reco::Vertex& v) {
+  double sumpt2 = 0.;
+  double sumpt = 0.;
+  for (trackit_t t = v.tracks_begin(); t != v.tracks_end(); t++) {
+    // no cut on the track weight here!
+    double pt = t->get()->pt();
+    sumpt += pt;
+    sumpt2 += pt * pt;
+  }
+  if (sumpt2 < 100.){
+    return 0.;
+  }else{
+    return sqrt(sumpt2)/ sumpt - (0.6 + sumpt2 / 1000.);
+  }
+}
+
 double PrimaryVertexAnalyzer4PU::vertex_sumpt2(const reco::Vertex& v) {
   double sumpt2 = 0.;
 
@@ -4054,6 +4072,7 @@ double PrimaryVertexAnalyzer4PU::vertex_sumpt2(const reco::Vertex& v) {
   return sqrt(sumpt2);
 }
 
+
 double PrimaryVertexAnalyzer4PU::vertex_sumpt(const reco::Vertex& v) {
   double sumpt = 0.;
 
@@ -4063,6 +4082,26 @@ double PrimaryVertexAnalyzer4PU::vertex_sumpt(const reco::Vertex& v) {
   }
   return sumpt;
 }
+
+
+
+double PrimaryVertexAnalyzer4PU::vertex_maxfrac(const reco::Vertex& v) {
+  double maxpt = 0.;
+  double sumpt = 0.;
+  for (trackit_t t = v.tracks_begin(); t != v.tracks_end(); t++) {
+    // no cut on the track weight here!
+    double pt = t->get()->pt();
+    if (pt > maxpt ) { maxpt = pt;}
+    sumpt += pt;
+  }
+  if (sumpt == 0){
+    return -1.;
+  }else{
+    return maxpt / sumpt;
+  }
+}
+
+
 
 double PrimaryVertexAnalyzer4PU::vertex_r(const reco::Vertex& v) {
   double z = v.z();
@@ -4086,6 +4125,8 @@ bool PrimaryVertexAnalyzer4PU::select(const reco::Vertex& v, int level) {
   if ((level == 2) && (v.ndof() > 4) && (vertex_pxy(v) > 0.01) && (vertex_ptmax2(v) > 0.4))
     return true;
   if ((level == 3) && (v.ndof() > 4) && (vertex_ptmax2(v) < 0.4))
+    return true;
+  if ((level == 4) && (v.ndof() > 4) && (vertex_yum(v) >= 0))
     return true;
   return false;
 }
@@ -4177,6 +4218,7 @@ void PrimaryVertexAnalyzer4PU::fillVertexHistos(std::map<std::string, TH1*>& h,
   if(sumpt >0){
     Fill(h, vtype + "/sumpt2oversumpt", sumpt2/sumpt);
     Fill(h, vtype + "/sumpt2oversumptvssumpt2", sumpt2, sumpt2/sumpt);
+    Fill(h, vtype + "/maxfrac", vertex_maxfrac(*v));
   }
   if(sumpt2 > 0){
     Fill(h, vtype + "/logsumpt2", log(sumpt2)/log(10.));
@@ -4245,6 +4287,11 @@ void PrimaryVertexAnalyzer4PU::fillVertexHistos(std::map<std::string, TH1*>& h,
     Fill(h, vtype + "/waptsum", waptsum);
 
     if (aptsum > 0) {
+
+      if(( std::abs(ptsum / aptsum) > 0.99) && (vtype == "selected") ){
+	reportEvent(Form("high pt asymmetry  %5.1f  for ptsum=%6.1f",ptsum / aptsum, ptsum), true);
+      }
+
       Fill(h, vtype + "/apt", ptsum / aptsum);
       Fill(h, vtype + "/aptvsdz", deltaz, ptsum / aptsum);
       Fill(h, vtype + "/wapt", wptsum / waptsum);
@@ -4956,29 +5003,43 @@ void PrimaryVertexAnalyzer4PU::analyzeTracksTP(Tracks& tracks, std::vector<SimEv
     // plots for primary, selected tracks
     if (tk.selected && tk.is_primary) {
       double zpull = (tk.z - tk.zsim) / tk.dz;
+      double logpt = log(tk.pt) / log(10.);
       Fill(hTrk, "zpulltrk_primselmatched", zpull);
-      Fill(hTrk, "zpulltprimselvseta", tk.eta, zpull);
+      unsigned int bin = 4;
+      if (tk.dz <= 0.01) {bin =0;}
+      else if (tk.dz < 0.02) { bin = 1; }
+      else if (tk.dz < 0.05) { bin = 2; }
+      else if (tk.dz < 0.10) { bin = 3; }
+      else { bin = 4;}
+      const char * sbin = trkdzbin_[bin].c_str();
 
-      if (tk.dz <= 0.01) Fill(hTrk, "zpulltprimselvseta_dz000-100", tk.eta, zpull);
-      if ((tk.dz > 0.01) && (tk.dz < 0.02) ) Fill(hTrk, "zpulltprimselvseta_dz100-200", tk.eta, zpull);
-      if ((tk.dz > 0.02) && (tk.dz < 0.05) ) Fill(hTrk, "zpulltprimselvseta_dz200-500", tk.eta, zpull);
-      if ((tk.dz > 0.05) && (tk.dz < 0.10) ) Fill(hTrk, "zpulltprimselvseta_dz500-1000", tk.eta, zpull);
-      if ((tk.dz > 0.10) && (tk.dz < 0.20) ) Fill(hTrk, "zpulltprimselvseta_dz1000-2000", tk.eta, zpull);
+      Fill(hTrk, "zpulltprimselvseta", tk.eta, zpull);
+      Fill(hTrk, Form("zpulltprimselvseta_%s", sbin), tk.eta, zpull);
+
+      Fill(hTrk, "zpulltprimselvslogpt", logpt, zpull);
+      Fill(hTrk, Form("zpulltprimselvslogpt_%s", sbin), logpt, zpull);
 
       auto hitPattern = tk.tt->track().hitPattern();
       auto nbarrel = hitPattern.pixelBarrelLayersWithMeasurement();
       if ( nbarrel < 2){
-	if (tk.dz <= 0.01) Fill(hTrk, "zpulltprimselbpxlt2vseta_dz000-100", tk.eta, zpull);
-	if ((tk.dz > 0.01) && (tk.dz < 0.02) ) Fill(hTrk, "zpulltprimselbpxlt2vseta_dz100-200", tk.eta, zpull);
-	if ((tk.dz > 0.02) && (tk.dz < 0.05) ) Fill(hTrk, "zpulltprimselbpxlt2vseta_dz200-500", tk.eta, zpull);
-	if ((tk.dz > 0.05) && (tk.dz < 0.10) ) Fill(hTrk, "zpulltprimselbpxlt2vseta_dz500-1000", tk.eta, zpull);
-	if ((tk.dz > 0.10) && (tk.dz < 0.20) ) Fill(hTrk, "zpulltprimselbpxlt2vseta_dz1000-2000", tk.eta, zpull);
+	Fill(hTrk, Form("zpulltprimselbpxlt2vseta_%s", sbin), tk.eta, zpull);
+      }else if (nbarrel > 2){
+	Fill(hTrk, Form("zpulltprimselbpxgt2vseta_%s", sbin), tk.eta, zpull);
+      }
+
+      Fill(hTrk, Form("ztailtprimselvslogpt_%s", sbin), logpt, (std::abs(zpull) > 3. ? 1. : 0.));
+
+      if (std::abs(tk.eta) > 1.2){
+	Fill(hTrk, Form("ztailtprimselvslogpt_etahi_%s", sbin), logpt, (std::abs(zpull) > 3. ? 1. : 0.));
       }else{
-	if (tk.dz <= 0.01) Fill(hTrk, "zpulltprimselbpxgt2vseta_dz000-100", tk.eta, zpull);
-	if ((tk.dz > 0.01) && (tk.dz < 0.02) ) Fill(hTrk, "zpulltprimselbpxgt2vseta_dz100-200", tk.eta, zpull);
-	if ((tk.dz > 0.02) && (tk.dz < 0.05) ) Fill(hTrk, "zpulltprimselbpxgt2vseta_dz200-500", tk.eta, zpull);
-	if ((tk.dz > 0.05) && (tk.dz < 0.10) ) Fill(hTrk, "zpulltprimselbpxgt2vseta_dz500-1000", tk.eta, zpull);
-	if ((tk.dz > 0.10) && (tk.dz < 0.20) ) Fill(hTrk, "zpulltprimselbpxgt2vseta_dz1000-2000", tk.eta, zpull);
+	Fill(hTrk, Form("ztailtprimselvslogpt_etalo_%s", sbin), logpt, (std::abs(zpull) > 3. ? 1. : 0.));
+      }
+
+      Fill(hTrk, "tprimselvslogpteta", tk.eta, logpt);
+      Fill(hTrk, Form("tprimselvslogpteta_%s", sbin), tk.eta, logpt);
+      if(std::abs(zpull) > 3.){
+	Fill(hTrk, "ztailtprimselvslogpteta", tk.eta, logpt);
+	Fill(hTrk, Form("ztailtprimselvslogpteta_%s",sbin), tk.eta, logpt);
       }
 
       Fill(hTrk, "zrestrk_primselmatched", tk.z - tk.zsim);
@@ -8600,7 +8661,11 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
       if (recvmatch[iv].split_from() == 0) {
         ntpsplitselfromsignal++;
 	fillVertexHistos(h, "splitvtxselfromsignal",  &(recVtxs->at(iv)), tracks, iv, deltaz);
-	reportEvent(Form("split signal vertex selected at index [%d]", iv), false);
+	double sumpt2 = vertex_sumpt2(recVtxs->at(iv));
+	reportEvent(Form("split signal vertex selected at index [%d]  sumpt2=%6.1f", iv, sumpt2), (sumpt2 > 100.));
+	if(sumpt2 > 100.){
+	  fillVertexHistos(h, "splitvtxselfromsignalhighpt",  &(recVtxs->at(iv)), tracks, iv, deltaz);
+	}
 
 	for (trackit_t t = recVtxs->at(iv).tracks_begin(); t != recVtxs->at(iv).tracks_end(); t++) {
 	  auto tk = tracks.from_ref(*t);
@@ -8696,13 +8761,13 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
 
   // ranking by track sumpt2:
   std::vector< std::pair<double, unsigned int> > ranking;
-  for (unsigned int iv = 1; iv < recVtxs->size(); iv++) {
+  for (unsigned int iv = 0; iv < recVtxs->size(); iv++) {
     if (select(recVtxs->at(iv))){
-      ranking.push_back( std::make_pair(vertex_sumpt2(recVtxs->at(iv)),iv) );
+      ranking.push_back( std::make_pair(vertex_sumpt2(recVtxs->at(iv)), iv) );
     }
   }
 
-  stable_sort(ranking.begin(), ranking.end());
+  stable_sort(ranking.rbegin(), ranking.rend());
   for(unsigned int n = 0; n < ranking.size(); n++){
     unsigned int iv = ranking[n].second;
     if( recvmatch[iv].is_signal() ){
@@ -8976,7 +9041,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
       }else if (recvmatch[1].split_from() > 0){ 
 	Fill(h, "zdiffrec10-signalsplitfrompu", zdiff);
       }else{
-	Fill(h, "zdiffrec10-otherfake", zdiff);
+	Fill(h, "zdiffrec10-signalotherfake", zdiff);
       }
 
       if (recvmatch[1].is_real() &&  (fabs(zdiff) < 0.05)) reportEvent("real pu close to signal promoted to nr 2", false);
@@ -10812,15 +10877,6 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionRecoNoTracks(std::map<std:
     const reco::Vertex* v = &(recVtxs->at(zrecv[idx].second));
     fillVertexHistosNoTracks(h, "sel", v, dznearest);
 
-  for (unsigned int idx = 0; idx < zrecv.size(); idx++) {
-    if ( (recVtxs->at(idx).ndof() > 4.09) && (recVtxs->at(idx).ndof() < 4.11) 
-	 && (recVtxs->at(idx).tracksSize() == 0)
-	 && (recVtxs->at(idx).chi2() > 0.9)
-	 && (recVtxs->at(idx).chi2() < 1.1)){
-      Fill(h, "indexempty", idx);
-    }
-  }
-
     /*
     if (is_tail)
       fillVertexHistosNoTracks(h, "tail", v, dznearest);
@@ -10833,6 +10889,15 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionRecoNoTracks(std::map<std:
         fillVertexHistosNoTracks(h, "tailzgt1", v, dznearest);
     }
     */
+  }
+
+  for (unsigned int idx = 0; idx < zrecv.size(); idx++) {
+    if ( (recVtxs->at(idx).ndof() > 4.09) && (recVtxs->at(idx).ndof() < 4.11) 
+	 && (recVtxs->at(idx).tracksSize() == 0)
+	 && (recVtxs->at(idx).chi2() > 0.9)
+	 && (recVtxs->at(idx).chi2() < 1.1)){
+      Fill(h, "indexempty", idx);
+    }
   }
 
   // count and z-map gaps of various sizes
