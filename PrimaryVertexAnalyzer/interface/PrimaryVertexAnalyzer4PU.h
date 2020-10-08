@@ -1096,6 +1096,7 @@ private:
   double fBfield_;
   double simUnit_;
   double simtUnit_;
+  double minNDOF_;
   double zmatch_;
   int eventSummaryCounter_;
   int nEventSummary_;

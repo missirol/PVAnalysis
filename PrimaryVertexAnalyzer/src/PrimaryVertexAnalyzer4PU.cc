@@ -144,6 +144,7 @@ PrimaryVertexAnalyzer4PU::PrimaryVertexAnalyzer4PU(const ParameterSet& iConfig)
       fBfield_(0.),
       simUnit_(1.0),    // cm everywher starting with CMSSW_1_2_x ??
       simtUnit_(1.e9),  // nanoseconds  in rec, do the same for sim
+      minNDOF_(iConfig.getUntrackedParameter<double>("minNDOF", 4.0)),
       zmatch_(iConfig.getUntrackedParameter<double>("zmatch", 0.0500)),
       sigmaZoverride_(iConfig.getUntrackedParameter<double>("sigmaZ", 0.0)),
       sigmaZ_(0),
@@ -3281,9 +3282,9 @@ void PrimaryVertexAnalyzer4PU::endJob() {
 	}
       }
     }
-  
+
   /* now write the rootfile */
-  
+
   rootFile_->cd();
 
   std::cout << "Info=" << info_->String() << std::endl;
@@ -4079,13 +4080,13 @@ bool PrimaryVertexAnalyzer4PU::select(const reco::Vertex& v, int level) {
   */
   if (v.isFake())
     return false;
-  if ((level == 0) && (v.ndof() > 4))
+  if ((level == 0) && (v.ndof() > minNDOF_))
     return true;
-  if ((level == 1) && (v.ndof() > 4) && (vertex_pxy(v) > 0.01))
+  if ((level == 1) && (v.ndof() > minNDOF_) && (vertex_pxy(v) > 0.01))
     return true;
-  if ((level == 2) && (v.ndof() > 4) && (vertex_pxy(v) > 0.01) && (vertex_ptmax2(v) > 0.4))
+  if ((level == 2) && (v.ndof() > minNDOF_) && (vertex_pxy(v) > 0.01) && (vertex_ptmax2(v) > 0.4))
     return true;
-  if ((level == 3) && (v.ndof() > 4) && (vertex_ptmax2(v) < 0.4))
+  if ((level == 3) && (v.ndof() > minNDOF_) && (vertex_ptmax2(v) < 0.4))
     return true;
   return false;
 }
@@ -5118,7 +5119,7 @@ void PrimaryVertexAnalyzer4PU::printPVTrksZT(edm::Handle<edm::View<Track>> track
         }
         cout << "  ndof=" << v->ndof() << "  ptmax2=" << vertex_ptmax2(*v);
         cout << "  sumpt2=" << vertex_sumpt2(*v);
-        if ((v->ndof() > 4) && (vertex_r(*v) > 0.0200)) {
+        if ((v->ndof() > minNDOF_) && (vertex_r(*v) > 0.0200)) {
           cout << "    rvtx= " << setw(8) << setprecision(4) << vertex_r(*v);
         }
         cout << " " << endl;
@@ -5731,6 +5732,7 @@ std::vector<PrimaryVertexAnalyzer4PU::SimEvent> PrimaryVertexAnalyzer4PU::getSim
     RecoTrack& tk = tracks(i);
 
     if (truthMatchedTrack(tracks.ref(i), tk.tpr)) {
+
       if (eventIdToEventMap.find(tk.tpr->eventId()) == eventIdToEventMap.end()) {
         if (tk.tpr->eventId().bunchCrossing() == 0) {
           cout << "Bug in getSimEvents, missing event ? " << tk.tpr->eventId().bunchCrossing() << ","
@@ -7736,10 +7738,11 @@ std::vector<PrimaryVertexAnalyzer4PU::RSmatch> PrimaryVertexAnalyzer4PU::tpmatch
 
       for (trackit_t tv = v->tracks_begin(); tv != v->tracks_end(); tv++) {
 	if(v->trackWeight(*tv) < 0.5) continue;
-	
+
         const RecoTrack t = tracks.from_key(tv->key());
 
         if (t.matched && (*t.simEvt == *ev)) {
+
           double dz2_beam = pow(vertexBeamSpot_.BeamWidthX() * cos(t.phi) / tan(t.theta), 2) +
                             pow(vertexBeamSpot_.BeamWidthY() * sin(t.phi) / tan(t.theta), 2);
           double dz2 = pow(t.dz, 2) + dz2_beam + pow(0.0020, 2); // added 20 um, some tracks have crazy small resolutions
@@ -7859,7 +7862,9 @@ void PrimaryVertexAnalyzer4PU::wos_match(std::vector<RSmatch> & recvmatch,
       for (unsigned int iev = 0; iev < simEvt.size(); iev++)
 	{
 	  if (simEvt.at(iev).rec != NOT_MATCHED) continue;
+
 	  if (simEvt.at(iev).nwosmatch == 0) continue;
+
 	  if (simEvt.at(iev).nwosmatch > rank) continue;
 	  
 	  unsigned int iv = NOT_MATCHED;
@@ -7868,7 +7873,9 @@ void PrimaryVertexAnalyzer4PU::wos_match(std::vector<RSmatch> & recvmatch,
 	    {
 	      unsigned int rec = simEvt.at(iev).wos_dominated_recv.at(k);
 	      if (recvmatch.at(rec).sim != NOT_MATCHED) continue; // already matched
+
 	      if (fabs(simEvt.at(iev).z - recVtxs->at(rec).z()) > zWosMatchMax_) continue;// insanely far away
+
 	      if ( (iv == NOT_MATCHED) || (simEvt.at(iev).wos.at(rec) > simEvt.at(iev).wos.at(iv)) )
 		{
 		  iv = rec;
@@ -8571,15 +8578,17 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
 	      deltaz = recVtxs->at(jv).z() - recVtxs->at(iv).z();
 	    }
 	}
-      
+
       ntpsel++;
       if (recvmatch[iv].is_fake()) {
         ntpfakesel++;
       }
       if (recvmatch[iv].is_real()) {
+
         ntprealsel++;
 	fillVertexHistosMatched(h, "matchedvtxsel",  &(recVtxs->at(iv)), tracks, recvmatch[iv], simEvt, iv, deltaz);
 	if(recvmatch[iv].is_signal()){
+
 	  fillVertexHistosMatched(h, "matchedsignalvtxsel",  &(recVtxs->at(iv)), tracks, recvmatch[iv], simEvt, iv, deltaz);
 	  for (trackit_t t = recVtxs->at(iv).tracks_begin(); t != recVtxs->at(iv).tracks_end(); t++) {
 	    auto tk = tracks.from_ref(*t);
@@ -8648,7 +8657,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
 
     if (recvmatch[iv].is_fake()) {
       ntpfake++;
-      if (recVtxs->at(iv).ndof() > 4) {
+      if (recVtxs->at(iv).ndof() > minNDOF_) {
         ntpfake4++;
       }
 
@@ -8824,7 +8833,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
           Fill(h, "zdiffrecsignalsel", fabs(recVtxs->at(signalv).z() - recVtxs->at(jv).z()));
 	}
 
-        if (recVtxs->at(jv).ndof() > 4.) {
+        if (recVtxs->at(jv).ndof() > minNDOF_) {
           Fill(h, "zdiffrec4signalsplit", fabs(recVtxs->at(signalv).z() - recVtxs->at(jv).z()));
           Fill(h, "zdiffrec4signalsplit-dzbin", fabs(recVtxs->at(signalv).z() - recVtxs->at(jv).z()));
           // add more, e.g. sumpt, fraction of pt
@@ -8835,9 +8844,9 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
 
   // distance histogram for pairs of reco vertices with ndof > 4
   for (unsigned int iv = 0; iv < recVtxs->size(); iv++) {
-    if (recVtxs->at(iv).ndof() > 4.) {
+    if (recVtxs->at(iv).ndof() > minNDOF_) {
       for (unsigned int jv = 0; jv < recVtxs->size(); jv++) {
-        if ((!(jv == iv)) && (recVtxs->at(jv).ndof() > 4.)) {
+        if ((!(jv == iv)) && (recVtxs->at(jv).ndof() > minNDOF_)) {
           double dz = recVtxs->at(iv).z() - recVtxs->at(jv).z();
           if (recvmatch[jv].is_real() && recvmatch[iv].is_real()) {
             Fill(h, "zdiffrec4realreal-dzbin", std::abs(dz));
@@ -8874,7 +8883,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
       }
 
       // more or less the same, but older
-      if ((!(jv == signalv)) && (recVtxs->at(jv).ndof() > 4.) && (!recvmatch[jv].is_signal())) {
+      if ((!(jv == signalv)) && (recVtxs->at(jv).ndof() > minNDOF_) && (!recvmatch[jv].is_signal())) {
         double dz = recVtxs->at(signalv).z() - recVtxs->at(jv).z();
         if (recvmatch[jv].is_real()) {
           Fill(h, "zdiffrec4signalreal", std::abs(dz));
@@ -8889,9 +8898,9 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
 
   // histogram the neighborhood of a PU vertex
   for (unsigned int iv = 0; iv < recVtxs->size() - 1; iv++) {
-    if ((recVtxs->at(iv).ndof() > 4.) && recvmatch[iv].is_real() && (!recvmatch[iv].is_signal())) {
+    if ((recVtxs->at(iv).ndof() > minNDOF_) && recvmatch[iv].is_real() && (!recvmatch[iv].is_signal())) {
       for (unsigned int jv = 0; jv < recVtxs->size(); jv++) {
-        if ((!(jv == iv)) && (recVtxs->at(jv).ndof() > 4.) && (!recvmatch[jv].is_signal())) {
+        if ((!(jv == iv)) && (recVtxs->at(jv).ndof() > minNDOF_) && (!recvmatch[jv].is_signal())) {
           double dz = recVtxs->at(iv).z() - recVtxs->at(jv).z();
           if (recvmatch[jv].is_real()) {
             Fill(h, "zdiffrec4PUrealPU", std::abs(dz));
@@ -8905,11 +8914,11 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
 
   // all pairs of reconstructed vertices
   for (unsigned int iv = 0; iv < recVtxs->size() - 1; iv++) {
-    if (recVtxs->at(iv).ndof() > 4.) {
+    if (recVtxs->at(iv).ndof() > minNDOF_) {
       double mindistance_realreal = 1e10;
 
       for (unsigned int jv = iv; jv < recVtxs->size(); jv++) {
-        if ((!(jv == iv)) && (recVtxs->at(jv).ndof() > 4.)) {
+        if ((!(jv == iv)) && (recVtxs->at(jv).ndof() > minNDOF_)) {
           double dz = recVtxs->at(iv).z() - recVtxs->at(jv).z();
           if (recvmatch[iv].is_real() && recvmatch[jv].is_real()) {
             Fill(h, "zdiffrec4found", dz);
@@ -8926,7 +8935,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
       double mindistance_realfake = 1e10;
       double zf = 0, zr = 0;
       for (unsigned int jv = 0; jv < recVtxs->size(); jv++) {
-        if ((!(jv == iv)) && (recVtxs->at(jv).ndof() > 4.)) {
+        if ((!(jv == iv)) && (recVtxs->at(jv).ndof() > minNDOF_)) {
           double dz = recVtxs->at(iv).z() - recVtxs->at(jv).z();
 
           if (recvmatch[iv].is_fake() && recvmatch[jv].is_real()) {
@@ -8993,7 +9002,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
     if (simEvt.at(iev).rec != NOT_MATCHED) {
 
       w = 1.;
-      if (recVtxs->at(simEvt.at(iev).rec).ndof() > 4.) {
+      if (recVtxs->at(simEvt.at(iev).rec).ndof() > minNDOF_) {
         w4 = 1.;  // for rec vertices with ndof > 4
       }
 
@@ -9097,7 +9106,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
       if ((ev1->rec > 0) && (ev2->rec > 0)) {
         // both sim vertices of this pair were found
         Fill(h, "zdiffsimfoundTP", deltazsim);
-        if ((ev2->ndof > 4.) && (ev1->ndof > 4.)) {
+        if ((ev2->ndof > minNDOF_) && (ev1->ndof > minNDOF_)) {
           Fill(h, "zdiffsimfound4TP", deltazsim);
           if (ev1 == simEvt.begin()) {
             Fill(h, "zdiffsimfound4SignalTP", deltazsim);
@@ -9203,7 +9212,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
     }
 
     if (!matchedw && !v->isFake()) {
-      if (v->ndof() > 4) {
+      if (v->ndof() > minNDOF_) {
         nfakew4++;
       }
     }
@@ -9211,7 +9220,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
     if (!matchedn && !v->isFake()) {
       // note: sometimes fakes are not really fakes because the "main" vertex was swallowed by a neighbor
       nfake++;
-      if (v->ndof() > 4) {
+      if (v->ndof() > minNDOF_) {
         nfake4++;
       }
       if (verbose_) {
@@ -9301,7 +9310,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
     Fill(h, "recmatchvtxs", nmatchvtx);
     Fill(h, "recmatch30vtxs", nmatch30vtx);
     Fill(h, "recmatch50vtxs", nmatch30vtx);
-    if (recvmatch[iv].is_fake() && (v->ndof() > 4)) {
+    if (recvmatch[iv].is_fake() && (v->ndof() > minNDOF_)) {
       Fill(h, "recmatchvtxsFake", nmatchvtx);
     } else {
       Fill(h, "recmatchvtxsReal", nmatchvtx);
@@ -9313,7 +9322,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
     // the denominator for the purity, make sure that the same weight requirement is applied as in the denominator
     double nmatchany = getTruthMatchedVertexTracks(*v, 0.5).size();  // includes tracks from any sim vertex
     // cout << "test  TP  nmatchany = " <<nmatchany << " testany = " << testany << endl; passed
-    if ((v->ndof() > 4) && matchFound && (nmatchany > 0)) {
+    if ((v->ndof() > minNDOF_) && matchFound && (nmatchany > 0)) {
       if (!(ematch == recvmatch[iv].wosmatch) && (recvmatch[iv].maxwos > 0)) {
         if (verbose_) {
           cout << "Matchers disagree " << setw(8) << setprecision(4) << fixed << v->z() << " ematch=" << ematch
@@ -9383,7 +9392,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
         }
       }
 
-    } else if (v->ndof() > 4) {
+    } else if (v->ndof() > minNDOF_) {
       // for vertices that we have not matched to anything, can't separate minority/majority
       // this is why majority + minority + unmatched don't add up to 100%
       for (trackit_t t = v->tracks_begin(); t != v->tracks_end(); t++) {
@@ -9400,7 +9409,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
 
     
     double nunmatched = v->tracksSize() - nmatchany;
-    if (recvmatch[iv].is_fake() && (v->ndof() > 4)) {
+    if (recvmatch[iv].is_fake() && (v->ndof() > minNDOF_)) {
       Fill(h, "nsiminrecvsunmatchedFake", nmatchvtx, nunmatched);
     } else {
       Fill(h, "nsiminrecvsunmatchedReal", nmatchvtx, nunmatched);
@@ -9430,7 +9439,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
       const reco::Vertex* v = &(recVtxs->at(iv));
       //for(auto v = recVtxs->begin(); v!=recVtxs->end(); ++v){
       // count tracks found in both, sim and rec  --> n
-      if (v->ndof() > 4) {
+      if (v->ndof() > minNDOF_) {
         double n = ev->countVertexTracks(*v);
         ev->ntInRecVi[iv] = n;
 
@@ -9686,7 +9695,7 @@ Merge rate = -----------------------
   }
 
   for (unsigned int k = 0; k < recVtxs->size(); k++) {
-    if (recVtxs->at(k).ndof() < 4.)
+    if (recVtxs->at(k).ndof() < minNDOF_)
       continue;
     double zrec = recVtxs->at(k).z();
     double sigmaz = recVtxs->at(k).zError();
@@ -9710,7 +9719,7 @@ Merge rate = -----------------------
 
   // now fill
   for (unsigned int k = 0; k < recVtxs->size(); k++) {
-    if (recVtxs->at(k).ndof() < 4.)
+    if (recVtxs->at(k).ndof() < minNDOF_)
       continue;
     double zfill = 0;
     if (r2s[k].size() > 0) {
@@ -9950,7 +9959,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionSimPv(std::map<std::string
     Fill(h, "effSignal", 1.);
     Fill(h, "effSignalvsNpu0", npu0, 1.);
     Fill(h, "effSignalvsnsimtrkacc", ntrkacc, 1.);
-    if (recVtxs->at(vsignal).ndof() > 4) {
+    if (recVtxs->at(vsignal).ndof() > minNDOF_) {
       //fillVertexHistos(h, "signalvtx4", &(recVtxs->at(vsignal)), tracks);
       Fill(h, "effSignal4", 1.);
       Fill(h, "effSignal4vsNpu0", npu0, 1.);
@@ -9978,7 +9987,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionSimPv(std::map<std::string
   }
 
   for (unsigned int iv = 0; iv < recVtxs->size(); iv++) {
-    if ((!(iv == vsignal) && (wos0[iv] > 0.5) && (recVtxs->at(iv).ndof() > 4))) {
+    if ((!(iv == vsignal) && (wos0[iv] > 0.5) && (recVtxs->at(iv).ndof() > minNDOF_))) {
       cout << "split or split/merge vertex z=" << setw(10) << setprecision(4) << recVtxs->at(iv).z()
            << "  wos0 =" << setprecision(3) << wos0[iv] << endl;  // todo, make sure there is no real vertex right there
     }
@@ -10061,7 +10070,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionSimPv(std::map<std::string
     } else if (((idxrec < zrecv.size()) && (idxsim < zsimv.size()) && (zrecv[idxrec].first < zsimv[idxsim].first)) ||
                ((idxrec < zrecv.size()) && (idxsim == zsimv.size()))) {
       // recvertex does not match any: fake or split
-      if (found_signal && (ndof > 4.)) {
+      if (found_signal && (ndof > minNDOF_)) {
         Fill(h, "zdiffrec4signalfakeSimpv", std::abs(zrecv[idxrec].first - zrecsignal));
         Fill(h, "zdiffrec4signalfakeSimpv-dzbin", std::abs(zrecv[idxrec].first - zrecsignal));
         if (pxy > 0.01)
@@ -10158,7 +10167,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionSimPv(std::map<std::string
 
     // histogram properties of matched vertices
     if (vsim->recVtx && (fabs(vsim->recVtx->z() - vsim->z * simUnit_) < zmatch_)) {
-      double w4 = vsim->recVtx->ndof() > 4 ? 1. : 0;
+      double w4 = vsim->recVtx->ndof() > minNDOF_ ? 1. : 0;
 
       Fill(h, "matchedVtxNdof", vsim->recVtx->ndof());
       Fill(h, "resxvsNdofprof", vsim->recVtx->ndof(), vsim->recVtx->x() - vsim->x * simUnit_);
@@ -10167,7 +10176,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionSimPv(std::map<std::string
       Fill(h, "resyvsNdofSpread", vsim->recVtx->ndof(), vsim->recVtx->y() - vsim->y * simUnit_);
 
       // residuals an pulls with respect to simulated vertex
-      if (vsim->recVtx->ndof() > 4) {
+      if (vsim->recVtx->ndof() > minNDOF_) {
         Fill(h, "resx", vsim->recVtx->x() - vsim->x * simUnit_, is_signal);
         Fill(h, "resy", vsim->recVtx->y() - vsim->y * simUnit_, is_signal);
         Fill(h, "resz", vsim->recVtx->z() - vsim->z * simUnit_, is_signal);
@@ -10265,7 +10274,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionSimPv(std::map<std::string
 
   int nrecvtxs4 = 0;
   for (reco::VertexCollection::const_iterator vrec = recVtxs->begin(); vrec != recVtxs->end(); ++vrec) {
-    if (!(vrec->isFake()) && (vrec->ndof() > 4)) {
+    if (!(vrec->isFake()) && (vrec->ndof() > minNDOF_)) {
       nrecvtxs4++;
     }
   }
@@ -10356,7 +10365,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionSimPv(std::map<std::string
         } else {
           // separated
           Fill(h, "zdiffrecvssim", deltazsim, deltazrec);
-          if ((vsim1->recVtx->ndof() > 4) && (vsim2->recVtx->ndof() > 4))
+          if ((vsim1->recVtx->ndof() > minNDOF_) && (vsim2->recVtx->ndof() > minNDOF_))
             Fill(h, "zdiffrec4vssim", deltazsim, deltazrec);
           if ((vsim1->recVtx->ndof() > 12) && (vsim2->recVtx->ndof() > 12))
             Fill(h, "zdiffrec12vssim", deltazsim, deltazrec);
@@ -10381,7 +10390,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionSimPv(std::map<std::string
           int nreciso = 0;
           std::vector<double> zrec;
           for (reco::VertexCollection::const_iterator vrec = recVtxs->begin(); vrec != recVtxs->end(); ++vrec) {
-            if (!(vrec->isFake()) && (vrec->ndof() > 4) && (vrec->z() > zmin) && (vrec->z() < zmax)) {
+            if (!(vrec->isFake()) && (vrec->ndof() > minNDOF_) && (vrec->z() > zmin) && (vrec->z() < zmax)) {
               nreciso++;
               zrec.push_back(vrec->z());
             }
@@ -10414,7 +10423,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionSimPv(std::map<std::string
         double zmax = zsimv[idxsim].first + 0.5 * ziso;
         int nreciso = 0;
         for (reco::VertexCollection::const_iterator vrec = recVtxs->begin(); vrec != recVtxs->end(); ++vrec) {
-          if (!(vrec->isFake()) && (vrec->ndof() > 4) && (vrec->z() > zmin) && (vrec->z() < zmax)) {
+          if (!(vrec->isFake()) && (vrec->ndof() > minNDOF_) && (vrec->z() > zmin) && (vrec->z() < zmax)) {
             nreciso++;
             Fill(h, "zreciso", vrec->z() - zsimv[idxsim].first);
           }
@@ -10717,7 +10726,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionReco(std::map<std::string,
         npt1++;
       Fill(h, "trackwtvsz", v->position().z(), v->trackWeight(*t));
     }
-    if (v->ndof() > 4) {
+    if (v->ndof() > minNDOF_) {
       Fill(h, "ntrkpt1vsz", v->position().z(), npt1);
       Fill(h, "ntrkwgt05vsz", v->position().z(), ntrkwgt05);
       Fill(h, "ftrkwgt05vsz", v->position().z(), ntrkwgt05 / v->tracksSize());
@@ -10727,15 +10736,15 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionReco(std::map<std::string,
     if (instBXLumi_ > 0) {
       Fill(h, "nbtksinvtxvsL", 1e3 * instBXLumi_, float(v->tracksSize()));
       Fill(h, "nbtksinvtxvsLPU", lumiPU_, float(v->tracksSize()));
-      if (v->ndof() > 4)
+      if (v->ndof() > minNDOF_)
         Fill(h, "nbtksinvtx4vsL", 1e3 * instBXLumi_, float(v->tracksSize()));
-      if (v->ndof() > 4)
+      if (v->ndof() > minNDOF_)
         Fill(h, "nbtksinvtx4vsLPU", lumiPU_, float(v->tracksSize()));
     }
     Fill(h, "nbtksinvtx2", v->tracksSize());
 
     double sumw = 0.5 * (v->ndof() + 2);
-    if (v->ndof() > 4) {
+    if (v->ndof() > minNDOF_) {
       Fill(h, "sumwvsz", v->position().z(), sumw);
       Fill(h, "sumntkvsz", v->position().z(), (double)v->tracksSize());
       Fill(h, "sumwoverntk", sumw / v->tracksSize());
@@ -10747,10 +10756,10 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionReco(std::map<std::string,
         Fill(h, "sumwoverntkwgt05vsz", v->position().z(), sumw / ntrkwgt05);
       }
     }
-    if ((v->ndof() > 4) && (v->ndof() < 10)) {
+    if ((v->ndof() > minNDOF_) && (v->ndof() < 10)) {
       Fill(h, "sumwoverntkvszlo", v->position().z(), sumw / v->tracksSize());
     }
-    if ((v->ndof() > 4) && (v->ndof() < 10)) {
+    if ((v->ndof() > minNDOF_) && (v->ndof() < 10)) {
       Fill(h, "sumwoverntkvszlo", v->position().z(), sumw / v->tracksSize());
     }
     if (v->ndof() > 20) {
@@ -10991,7 +11000,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionRecoNoTracks(std::map<std:
 
     fillVertexHistosNoTracks(h, "rec", &(*v), nv-1);
 
-    if (v->ndof() > 4) {
+    if (v->ndof() > minNDOF_) {
       Fill(h, "ndofvsz4", v->position().z(), v->ndof());
 
       Fill(h, "vtxndofvsLS", lsglb_, v->ndof());
@@ -11005,7 +11014,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionRecoNoTracks(std::map<std:
     }
 
     // low multiplicity tagged vertex in high pile-up
-    if ((v->ndof() > 4) && (v == recVtxs->begin()) && (recVtxs->size() > 20)) {
+    if ((v->ndof() > minNDOF_) && (v == recVtxs->begin()) && (recVtxs->size() > 20)) {
       Fill(h, "zrec_tagged_hpu", v->position().z());
       if (v->ndof() < 20) {
         Fill(h, "zrec_tagged_lowndof_hpu", v->position().z());
@@ -11023,19 +11032,19 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionRecoNoTracks(std::map<std:
       zndof2 = v->position().z();
     }
 
-    if (v->ndof() > 4) {
+    if (v->ndof() > minNDOF_) {
       Fill(h, "trkchi2overndof", v->chi2() / v->ndof());
     }
 
     Fill(h, "vtxprob", ChiSquaredProbability(v->chi2(), v->ndof()));
     Fill(h, "ndofvsz0", v->position().z(), v->ndof());
 
-    if (v->ndof() < 4.) {
+    if (v->ndof() < minNDOF_) {
       Fill(h,
            "zrecBeamPullndoflt4",
            (v->position().z() - vertexBeamSpot_.z0()) / sqrt(pow(v->zError(), 2) + pow(sigmaZ_, 2)));
     }
-    if (v->ndof() > 4.0) {  // enter only vertices that really contain tracks
+    if (v->ndof() > minNDOF_) {  // enter only vertices that really contain tracks
       Fill(h, "xrec", v->position().x());
       Fill(h, "yrec", v->position().y());
       Fill(h, "zrec", v->position().z());
@@ -11102,7 +11111,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionRecoNoTracks(std::map<std:
     double z0 = v->position().z() - vertexBeamSpot_.z0() - dzb_;
 
     // reference shape for zdiff4 and other z-histograms
-    if (v->ndof() > 4) {
+    if (v->ndof() > minNDOF_) {
       Fill(h, "zrec4", z0);
       Fill(h, "zrec4vsLPU", lumiPU_, z0);
       Fill(h, "zrec4vsordprof", float(nv), z0);
@@ -11199,17 +11208,17 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionRecoNoTracks(std::map<std:
         }
       }
 
-      if ((v->ndof() < 4) && (v1->ndof() < 4)) {
+      if ((v->ndof() < minNDOF_) && (v1->ndof() < minNDOF_)) {
         Fill(h, "zdiffreclt4hr", z1 - z0);
       }
 
-      if ((v->ndof() > 4) && (v1->ndof() < 4)) {
+      if ((v->ndof() > minNDOF_) && (v1->ndof() < minNDOF_)) {
         Fill(h, "zdiffrec4lt4hr", z1 - z0);
-      } else if ((v->ndof() < 4) && (v1->ndof() > 4)) {
+      } else if ((v->ndof() < minNDOF_) && (v1->ndof() > minNDOF_)) {
         Fill(h, "zdiffrec4lt4hr", z0 - z1);
       }
 
-      if ((v->ndof() > 4) && (v1->ndof() > 4)) {
+      if ((v->ndof() > minNDOF_) && (v1->ndof() > minNDOF_)) {
         //	Fill(h, "zdiffrec4",   z1-z0);  // obsolete, use zdiffrecsel
         //	Fill(h, "zdiffrec4hr", z1-z0);
 
