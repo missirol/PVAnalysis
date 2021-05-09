@@ -1,4 +1,3 @@
-
 import FWCore.ParameterSet.Config as cms
 import FWCore.PythonUtilities.LumiList as LumiList
 
@@ -24,18 +23,16 @@ use_hlt = False
 
 json = "goodList.json"
 era = "Run3"  # or Phase2 or Run2_2018,  see eras.__dict__.keys()
+outputFile = 'pv.root'
 secondary_files =  None #cms.untracked.vstring("")
 
 # twofile solutions
 f1 = {}
 f2 = {}
 
-
-
-
-
 vcollections= cms.VInputTag(
-    "offlinePrimaryVertices"
+    "offlinePrimaryVertices",
+    "offlinePrimaryVerticesNew"
 #   "offlinePrimaryVertices4D"
 #   "offlinePrimaryVerticesWithBS",
 )
@@ -93,7 +90,7 @@ parameters={  # can be overwritten by arguments of the same name
 # temp
   "purge_method" : cms.untracked.int32(0),
   "split_method" : cms.untracked.int32(0),
-    "use_hitpattern" : cms.untracked.int32(0),
+  "use_hitpattern" : cms.untracked.int32(0),
   "use_pt" : cms.untracked.int32(0)
 }
 
@@ -101,16 +98,12 @@ parameters={  # can be overwritten by arguments of the same name
 args=[]
 for a in sys.argv:
     args += a.split()
-        
 
 for a in args:
-
-
     try:
         key, value = a.split("=")
     except ValueError:
         continue
-
 
     if key == "nevent" or key == "events":
 
@@ -119,7 +112,10 @@ for a in args:
     elif key == "input":
 
         inputfile = value
-        if inputfile.endswith(".root"):
+        if ',' in inputfile:
+            files = inputfile.split(',')
+            source_files = cms.untracked.vstring(files)
+        elif inputfile.endswith(".root"):
             files = [inputfile]
             source_files = cms.untracked.vstring(inputfile)
         else:
@@ -131,6 +127,9 @@ for a in args:
 
     elif key == "era":
         era = value
+
+    elif key == "outputFile":
+        outputFile = value
 
     elif key == "4D":
         parameters["4D"] = cms.untracked.bool(value == "True")
@@ -199,40 +198,42 @@ for a in args:
         elif typename == "untracked bool":
             parameters[key] = cms.untracked.bool( value == "True")
     else:
-        print "!! pvt_cfg.py  :  unknown key ",key
+        print "!! pv3_cfg.py  :  unknown key ",key
 
-
+raw_files = []
 if len(files) > 0:
-    fpath = "/store" + files[0].split("/store")[1]
-    raw_files = subprocess.check_output(shlex.split('dasgoclient -query="parent file=%s"' % fpath)).strip().split('\n')
-    print raw_files
-    secondary_files = cms.untracked.vstring(["root://xrootd-cms.infn.it/"+f for f in raw_files])
-    #for dataset in f1.keys():
-    #    if fpath in f1[dataset]:
-    #        secondary_files = cms.untracked.vstring(["root://xrootd-cms.infn.it/"+f for f in f2[dataset]])
+   for _tmp in files:
+     fpath = "/store" + _tmp.split("/store")[1]
+     raw_files += subprocess.check_output(shlex.split('dasgoclient -query="parent file={:}"'.format(fpath))).strip().split('\n')
+   raw_files = sorted(list(set(raw_files)))
+   secondary_files = cms.untracked.vstring(raw_files)
 
-print "pvt_cfg.py"
+print "pv3_cfg.py"
 print "args           ",args
 print "events         ",nevent
 print "info           ",info
 print "json           ",json
 print "era            ",era
+print "outputFile     ",outputFile
 print "DO_VTX_RECO    ",DO_VTX_RECO
 print "fastClusterizer ",parameters["fastClusterizer"]
+
 print "all parameters"
-print parameters
+for _tmpkey in sorted(parameters.keys()):
+  print '  {:<30} = {:<30}'.format(_tmpkey, parameters[_tmpkey])
+
 if len(source_files) == 0:
     print "empty source file list!"
 else:
-    print "source files = ",source_files
-    print "secondary files = ", secondary_files
+    print "source files =", source_files
+    print "secondary files =", secondary_files
 
 if era == "Phase2":
     process = cms.Process("RERECO", eras.Phase2)
     autotag = "auto:phase2_realistic"
 elif era == "Run3":
     process = cms.Process("RERECO", eras.Run3)
-    autotag = "111X_mcRun3_2021_realistic_v4"
+    autotag = "112X_mcRun3_2021_realistic_v5"
     parameters["4D"] = cms.untracked.bool(False)
 else:
     print "unknown era",era
@@ -242,8 +243,6 @@ else:
 #ESSource: GlobalTag RECO
 #  @module_label: string tracked  = 'GlobalTag'
 #  globaltag: string tracked  = '111X_mcRun3_2021_realistic_v4'
-
-
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -289,20 +288,15 @@ else:
                                 #eventsToProcess = cms.untracked.VEventRange()
                             )
 
-
 if not eventsToProcess == "":
-    process.source.eventsToProcess = cms.untracked.VEventRange( eventsToProcess )
-
+   process.source.eventsToProcess = cms.untracked.VEventRange( eventsToProcess )
 
 if json is not None  and os.path.exists(json) and (len(source_files)==0 or source_files[0].find("SIM")<0):
-    process.source.lumisToProcess = LumiList.LumiList(filename = json).getVLuminosityBlockRange()
-
+   process.source.lumisToProcess = LumiList.LumiList(filename = json).getVLuminosityBlockRange()
 
 # no HLT for MC
 if len(source_files)>0 and source_files[0].find("SIM") >= 0:
-    use_hlt = False
-
-
+   use_hlt = False
 
 #process.Tracer = cms.Service("Tracer")
 
@@ -311,13 +305,11 @@ process.options = cms.untracked.PSet(
     wantSummary = cms.untracked.bool(True)
 )
 
-
-
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, autotag, '')
 
 if DO_VTX_RECO:
-    process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True)  )
+  process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
 
 process.load("RecoLocalCalo.Configuration.hcalLocalReco_cff")
 process.load("RecoLocalCalo.HcalRecProducers.HBHEIsolatedNoiseReflagger_cfi")
@@ -333,7 +325,10 @@ process.ak4CaloJetsForTrk.srcPVs = 'unsortedOfflinePrimaryVertices'
 process.vertexreco.remove(process.generalV0Candidates)
 process.vertexreco.remove(process.inclusiveVertexing)
 
-    
+process.offlinePrimaryVerticesNew = process.offlinePrimaryVertices.clone()
+del process.offlinePrimaryVertices
+process.vertexreco += process.offlinePrimaryVerticesNew
+
 tkFilterParameters = cms.PSet(
     algorithm=cms.string('filter'),
     maxNormalizedChi2 = parameters["maxNormalizedChi2"],
@@ -345,7 +340,7 @@ tkFilterParameters = cms.PSet(
     minPt = parameters["minPt"],
     maxEta = parameters["maxEta"],
     trackQuality = parameters["trackQuality"]
-    )
+)
 
 if DO_VTX_RECO:
     process.PV = cms.Path(process.vertexreco)
@@ -370,18 +365,17 @@ if DO_VTX_RECO:
     process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters.delta_lowT = parameters["delta_lowT"]
     process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters.delta_highT = parameters["delta_highT"]
     process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters.vertexSize = parameters["vertexSize"]
-    process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters.uniquetrkminp = parameters["uniquetrkminp"]
-    process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters.purge_method = parameters["purge_method"]
-    process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters.split_method = parameters["split_method"]
-    process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters.use_hitpattern = parameters["use_hitpattern"]
-    process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters.use_pt = parameters["use_pt"]
+#    process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters.uniquetrkminp = parameters["uniquetrkminp"]
+#    process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters.purge_method = parameters["purge_method"]
+#    process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters.split_method = parameters["split_method"]
+#    process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters.use_hitpattern = parameters["use_hitpattern"]
+#    process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters.use_pt = parameters["use_pt"]
     process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters.zmerge = parameters["zmerge"]
     #for par_name in (
     #        "Tmin", "Tpurge", "vertexSize", "delta_lowT", "delta_highT", 
     #        "convergence_mode", "zrange", "zmerge", "uniquetrkminp", 
     #        "nunique_min", "purge_method", "split_method", "use_hitpattern"):
     #    setattr(process.unsortedOfflinePrimaryVertices.TkClusParameters.TkDAClusParameters, par_name, parameters[par_name])
-
 
     process.unsortedOfflinePrimaryVertices.TkFilterParameters = tkFilterParameters.clone()
     #
@@ -401,10 +395,6 @@ if DO_VTX_RECO:
                 setattr(p.TkClusParameters.TkDAClusParameters, par_name, parameters[par_name])
 
         p.TkFilterParameters = tkFilterParameters.clone()
-    
-
-
-
 
 # analysis
 process.oldVertexAnalysis = cms.EDAnalyzer("PrimaryVertexAnalyzer4PU",
@@ -412,7 +402,7 @@ process.oldVertexAnalysis = cms.EDAnalyzer("PrimaryVertexAnalyzer4PU",
     f4D = parameters["4D"],
     beamSpot = cms.InputTag('offlineBeamSpot'),
     simG4 = cms.InputTag("g4SimHits"),
-    outputFile = cms.untracked.string("pv.root"),
+    outputFile = cms.untracked.string(outputFile),
     verbose = parameters["verboseAnalyzer"],
     veryverbose = cms.untracked.bool(False),
     recoTrackProducer = cms.untracked.string("generalTracks"),
@@ -434,7 +424,6 @@ process.oldVertexAnalysis = cms.EDAnalyzer("PrimaryVertexAnalyzer4PU",
     vertexRecoCollections = vcollections
 )
 
-
 #---------------------------------------------------------------------------------------------------
 # Trigger Selection
 
@@ -453,19 +442,16 @@ process.genHTFilter = cms.EDFilter("GenHTFilter",
    genHTcut = cms.double(1000.0) #genHT cut
 )
 
-
 if use_tp and not use_genHTFilter:
     process.analyze =  cms.Path( process.theTruth * process.oldVertexAnalysis )
 elif use_tp and use_genHTFilter:
     print "using genHTFilter"
     process.analyze =  cms.Path( process.genHTFilter * process.theTruth * process.oldVertexAnalysis )
 elif use_hlt:
-    print "using hlt seletion"
+    print "using hlt selection"
     process.analyze =  cms.Path( process.hltSelection * process.oldVertexAnalysis )
 else:
     process.analyze =  cms.Path( process.oldVertexAnalysis )
-
-
 
 print "============================================="
 print process.source
@@ -475,9 +461,7 @@ if False:
     process.content = cms.EDAnalyzer("EventContentAnalyzer")
     process.dump = cms.Path(process.content)
     process.schedule = cms.Schedule(process.dump)
-
 else:
-
     # Schedule definition
     if DO_VTX_RECO:
         # Schedule definition

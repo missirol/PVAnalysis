@@ -8976,7 +8976,7 @@ void PrimaryVertexAnalyzer4PU::analyzeVertexCollectionTP(std::map<std::string, T
       }else if (recvmatch[1].split_from() > 0){ 
 	Fill(h, "zdiffrec10-signalsplitfrompu", zdiff);
       }else{
-	Fill(h, "zdiffrec10-otherfake", zdiff);
+	Fill(h, "zdiffrec10-signalotherfake", zdiff);
       }
 
       if (recvmatch[1].is_real() &&  (fabs(zdiff) < 0.05)) reportEvent("real pu close to signal promoted to nr 2", false);

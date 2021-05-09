@@ -194,11 +194,13 @@ print "json           ",json
 print "era            ",era
 print "DO_VTX_RECO    ",DO_VTX_RECO
 print "newClusterizer ",parameters["newClusterizer"]
+
 print "all parameters"
-print parameters
+for _tmpkey in sorted(parameters.keys()):
+  print '  {:<40} {>40}'.format(_tmpkey, parameters[_tmpkey])
+
 if len(source_files) == 0:
     print "empty source file list!"
-
 
 if era == "Phase2":
     process = cms.Process("RERECO", eras.Phase2)
