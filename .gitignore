@@ -1,0 +1,11 @@
+*~
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.root
+*.txt
+*.pyc
+__init__.py
+tmp*
+output_*/
