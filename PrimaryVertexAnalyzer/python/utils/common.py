@@ -133,7 +133,7 @@ def HTCondor_jobIDs(username=None):
 
     return _condorq_jobIDs
 
-def HTCondor_jobExecutables(username=None):
+def HTCondor_jobExecutables_old(username=None):
     if not username:
        if 'USER' in os.environ: username = os.environ['USER']
 
@@ -211,6 +211,23 @@ def HTCondor_executable_from_jobID(jobID):
     _exe_path = os.path.abspath(os.path.realpath(_exe_path))
 
     return _exe_path
+
+def slurm_jobExecutables(username=None, executable=None):
+    if not username:
+      if 'USER' in os.environ:
+        username = os.environ['USER']
+
+    if not username:
+      KILL('slurm_jobExecutables -- unspecified argument "username"')
+
+    _squeue_jobExes_dict = {}
+    _squeue_cmd = 'squeue -u {:} --format "%i %o"'.format(username)
+    _squeue_lines = get_output(_squeue_cmd, permissive=True)[0].split('\n')
+    for _i_squeue_line in _squeue_lines:
+      _i_squeue_cmd_pieces = _i_squeue_line.split()
+      if executable is not None and _i_squeue_cmd_pieces[1] != executable: continue
+      _squeue_jobExes_dict[_i_squeue_cmd_pieces[0]] = ' '.join(_i_squeue_cmd_pieces[1:])
+    return _squeue_jobExes_dict
 
 def hadd_rootfiles(output, inputs):
     if os.path.exists(output):
