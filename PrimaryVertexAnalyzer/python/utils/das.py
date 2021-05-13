@@ -6,6 +6,14 @@ import json
 
 from common import *
 
+def dataset_from_file(file_name):
+  return command_output_lines('dasgoclient --query "dataset file='+str(file_name)+'"')[0]
+
+def files_from_dataset(dataset_name):
+  dataset_files = command_output_lines('dasgoclient --query "file dataset='+str(dataset_name)+'"')
+  dataset_files = [_tmp for _tmp in dataset_files if _tmp != '']
+  return list(set(dataset_files))
+
 def load_dataset_data(das_name, max_files=-1, max_events=-1, parentFiles_levels=2, files_prefix='', verbose=False):
 
     if verbose:
