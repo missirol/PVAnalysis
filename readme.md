@@ -41,7 +41,8 @@ For a given set of jobs, one runs the `bdriver` step first (and only once),
 and then controls the jobs running `bmonitor` as many times as needed,
 until all jobs complete successfully.
 
-*Note*: both scripts support two batch systems:
+*NB* --
+Both scripts support two batch systems:
 `HTCondor` (in use on `lxplus` machines), and `SLURM` (in use at `T3_PSI_CH`);
 the `HTCondor` functionalities are expected to work,
 but they are currently under-tested,
@@ -58,7 +59,7 @@ a new wrapper under `prod/` specifying the relevant input data sets
 and configuration file (+ its command-line arguments).
 ```shell
 # path to output directory on T3 Storage Element (SE)
-outdir=/pnfs/psi.ch/cms/trivcat/store/user/${USER}/test/tmp_cmsrun_test1
+outdir=/pnfs/psi.ch/cms/trivcat/store/user/${USER}/test/pvtx/prod/$(date +%y%m%d)_prodTag
 
 # wrapper to create scripts for cmsRun jobs to be submitted to the SLURM batch system
 ${CMSSW_BASE}/src/usercode/PrimaryVertexAnalyzer/test/prod/bjobs_Phase2_D76vD78_210514.sh ${outdir}
