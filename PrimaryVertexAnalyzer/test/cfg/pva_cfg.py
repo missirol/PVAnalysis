@@ -34,6 +34,11 @@ opts.register('wantSummary', False,
               vpo.VarParsing.varType.bool,
               'show cmsRun summary at job completion')
 
+opts.register('fastTimer', True,
+              vpo.VarParsing.multiplicity.singleton,
+              vpo.VarParsing.varType.bool,
+              'enable FastTimerService')
+
 opts.register('pruneProcess', True,
               vpo.VarParsing.multiplicity.singleton,
               vpo.VarParsing.varType.bool,
@@ -323,6 +328,14 @@ process.source.secondaryFileNames = opts.secondaryInputFiles if opts.secondaryIn
 
 ## TFileService
 #process.TFileService = cms.Service('TFileService', fileName = cms.string(opts.output))
+
+if opts.fastTimer:
+  from HLTrigger.Timer.FastTimerService_cfi import FastTimerService as _FastTimerService
+  process.FastTimerService = _FastTimerService.clone()
+  process.FastTimerService.printEventSummary = False
+  process.FastTimerService.printRunSummary = False
+  process.FastTimerService.printJobSummary = True
+  process.FastTimerService.enableDQM = False
 
 if opts.pruneProcess:
   process.prune()
