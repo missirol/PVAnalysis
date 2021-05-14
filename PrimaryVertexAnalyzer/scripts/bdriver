@@ -368,7 +368,7 @@ if pvaCounter > 1:
        '',
        '# define SLURM_JOB_NAME and SLURM_ARRAY_JOB_ID, if they are not defined already (e.g. if script is executed locally)',
        '[ ! -z ${SLURM_JOB_NAME} ] || SLURM_JOB_NAME='+jobName,
-       '[ ! -z ${SLURM_ARRAY_JOB_ID} ] || SLURM_ARRAY_JOB_ID=local$(date +%Y%m%d%H%M%S)',
+       '[ ! -z ${SLURM_ARRAY_JOB_ID} ] || SLURM_ARRAY_JOB_ID=local$(date +%y%m%d%H%M%S)',
        '',
        'echo SLURM_JOB_NAME: ${SLURM_JOB_NAME}',
        'echo SLURM_JOB_ID: ${SLURM_JOB_ID}',
