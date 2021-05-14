@@ -23,16 +23,16 @@ corresponding to different types of PV-related analyses.
 
 An example of how to run a test with one of these cfg files is given below:
 ```shell
-cd ${CMSSW_BASE}/src/usercode/PrimaryVertexAnalyzer/test/cfg
-cmsRun pva_cfg.py maxEvents=10 dumpPython=pva_configDump.py reco=Phase2_D76
+cmsRun ${CMSSW_BASE}/src/usercode/PrimaryVertexAnalyzer/test/cfg/pva_cfg.py \
+  dumpPython=pva_configDump.py maxEvents=10 reco=Phase2_D76 outputFile=tmp_Phase2_D76.root
 ```
 
-#### Batch-job workflow at PSI's Tier-3
+#### Batch processing at PSI's Tier-3
 
-Submission of multiple jobs to the batch system can be done using
+Submission of multiple jobs to a batch system can be done using
 the executables `scripts/bdriver` and `scripts/bmonitor`.
 
-The first one creates the output directory
+The first one creates the output directory structure
 and the executables to be used by the batch jobs,
 while the second one allows to monitor and
 manage (e.g. resubmit) the jobs themselves.
