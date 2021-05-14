@@ -17,7 +17,7 @@ def monitor_HTCondor(options, log=''):
     if not os.path.isdir(i_opt):
       if options.verbosity > 0: WARNING(log+'input argument is not a valid directory (will be ignored): '+i_opt)
       continue
-    INPUT_DIRS += [i_opt]
+    INPUT_DIRS += [os.path.abspath(i_opt)]
   INPUT_DIRS = list(set(INPUT_DIRS))
 
   if len(INPUT_DIRS) == 0:
@@ -174,7 +174,7 @@ def monitor_slurm(options, log=''):
     if not os.path.isdir(i_opt):
       if options.verbosity > 0: WARNING(log+'input argument is not a valid directory (will be ignored): '+i_opt)
       continue
-    INPUT_DIRS += [i_opt]
+    INPUT_DIRS += [os.path.abspath(i_opt)]
   INPUT_DIRS = list(set(INPUT_DIRS))
 
   if len(INPUT_DIRS) == 0:
