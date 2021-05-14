@@ -250,8 +250,9 @@ def monitor_slurm(options, log=''):
     if len(tasksUnfinished) > 0:
       runningJobsDict = slurm_jobExecutables(os.environ['USER'])
       nRunningJobs = len(runningJobsDict.keys())
-      runningTasks = [int(_tmp.split('_')[1]) for _tmp in runningJobsDict if runningJobsDict[_tmp].split()[1] == inp_dir+'/slurm_exe.sh']
+      runningTasks = [int(_tmp.split('_')[1]) for _tmp in runningJobsDict if runningJobsDict[_tmp].split()[0] == inp_dir+'/slurm_exe.sh']
       runningTasks = list(set(runningTasks))
+      counter_running += len(runningTasks)
 
     tasksCanResubmit = [_tmp for _tmp in tasksUnfinished if _tmp not in runningTasks]
     tasksCanResubmit.sort()
