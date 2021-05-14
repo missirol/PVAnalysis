@@ -57,7 +57,7 @@ opts.register('verbosity', 0,
 opts.register('output', 'out.root',
               vpo.VarParsing.multiplicity.singleton,
               vpo.VarParsing.varType.string,
-              'path to output ROOT file')
+              'path to output ROOT file of PrimaryVertexAnalyzer4PU plugin')
 
 opts.parseArguments()
 
@@ -233,7 +233,7 @@ process.vertexAnalyzer = cms.EDAnalyzer('PrimaryVertexAnalyzer4PU',
   selNdofWithBS = parameters['selNdofWithBS'],
   beamSpot = cms.InputTag('offlineBeamSpot'),
   simG4 = cms.InputTag('g4SimHits'),
-  outputFile = cms.untracked.string(opts.outputFile),
+  outputFile = cms.untracked.string(opts.output),
   verbose = parameters['verboseAnalyzer'],
   veryverbose = cms.untracked.bool(False),
   recoTrackProducer = cms.untracked.string('generalTracks'),

@@ -223,10 +223,10 @@ opts.register('skipEvents', 0,
               vpo.VarParsing.varType.int,
               'number of events to be skipped')
 
-#opts.register('output', 'out.root',
-#              vpo.VarParsing.multiplicity.singleton,
-#              vpo.VarParsing.varType.string,
-#              'path to output file of TFileService')
+opts.register('output', 'out.root',
+              vpo.VarParsing.multiplicity.singleton,
+              vpo.VarParsing.varType.string,
+              'path to output ROOT file of PrimaryVertexAnalyzer4PU plugin')
 
 opts.parseArguments()
 
@@ -253,7 +253,7 @@ for mod_i in analyzers_by_type(process, 'PrimaryVertexAnalyzer4PU'):
   if process.schedule_() is not None and not process.schedule_().contains(mod_i):
     continue
   pvaCounter += 1
-  mod_i.outputFile = opts.outputFile
+  mod_i.outputFile = opts.output
 if pvaCounter > 1:
   raise RuntimeError('more than one instance of "PrimaryVertexAnalyzer4PU" is scheduled to be executed')
 """
@@ -463,7 +463,7 @@ if pvaCounter > 1:
              cmsRun_opts += ' \\\n inputFiles='+str(i_inputFile)
              if i_secondaryInputFiles:
                cmsRun_opts += ' \\\n secondaryInputFiles='+str(','.join(i_secondaryInputFiles))
-             cmsRun_opts += ' \\\n outputFile=./out'+outputname_postfix_format.format(jobCounter)+'.root'
+             cmsRun_opts += ' \\\n output=./out'+outputname_postfix_format.format(jobCounter)+'.root'
 
              for _tmp in cmsRun_addopts:
                cmsRun_opts += ' \\\n '+str(_tmp)
@@ -504,7 +504,7 @@ if pvaCounter > 1:
            ]
 
          cmsRun_opts += [
-           'outputFile=${TMPDIR}/out'+outputname_postfix_format.format(jobCounter)+'.root',
+           'output=${TMPDIR}/out'+outputname_postfix_format.format(jobCounter)+'.root',
          ]
 
          cmsRun_opts += cmsRun_addopts
@@ -584,3 +584,9 @@ if pvaCounter > 1:
        EXE('condor_submit '+SUBFILE_ABSPATH, suspend=False, verbose=(opts.verbosity > 0), dry_run=opts.dry_run)
      elif opts.batch_system == 'slurm':
        EXE('squeue ---array=0-'+str(jobCounter-1)+' '+EXEFILE_ABSPATH, suspend=False, verbose=(opts.verbosity > 0), dry_run=opts.dry_run)
+
+## TO-DOs
+##  * add info to stdout on the job memory usage (similarly to what is currently available for processing time)
+##  * include CI/CD workflow to validate changes
+##  * convert plugin to stream/global module (and move to TFileService?)
+##  * modernise plugin (e.g. getHandle, getData, fillDescription)
