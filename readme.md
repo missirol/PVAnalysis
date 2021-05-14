@@ -9,10 +9,15 @@
 
 #### Setup
 ```shell
+voms-proxy-init -voms cms -rfc -valid 168:00
+
 scram p -n CMSSW_11_3_0_pre6 CMSSW CMSSW_11_3_0_pre6
 cd CMSSW_11_3_0_pre6/src
 eval `scram runtime -sh`
-voms-proxy-init -voms cms -rfc -valid 168:00
+
+git clone https://github.com/missirol/PVAnalysis.git usercode -o missirol -b devel3
+
+scram b -j 4
 ```
 
 #### Configuration files
@@ -24,7 +29,7 @@ corresponding to different types of PV-related analyses.
 An example of how to run a test with one of these cfg files is given below:
 ```shell
 cmsRun ${CMSSW_BASE}/src/usercode/PrimaryVertexAnalyzer/test/cfg/pva_cfg.py \
-  dumpPython=pva_configDump.py maxEvents=10 reco=Phase2_D76 outputFile=tmp_Phase2_D76.root
+  dumpPython=pva_configDump.py maxEvents=10 reco=Phase2_D76 output=tmp_Phase2_D76.root
 ```
 
 #### Batch processing at PSI's Tier-3
