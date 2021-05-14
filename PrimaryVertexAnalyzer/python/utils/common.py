@@ -223,7 +223,15 @@ def slurm_jobExecutables(username=None, executable=None):
     _squeue_jobExes_dict = {}
     _squeue_cmd = 'squeue -u {:} --format "%i %o"'.format(username)
     _squeue_lines = get_output(_squeue_cmd, permissive=True)[0].split('\n')
+
+    _startJobParsing = False
     for _i_squeue_line in _squeue_lines:
+      if not _i_squeue_line: continue
+      if _i_squeue_line == 'JOBID COMMAND':
+        _startJobParsing = True
+        continue
+      if not _startJobParsing: continue
+
       _i_squeue_cmd_pieces = _i_squeue_line.split()
       if executable is not None and _i_squeue_cmd_pieces[1] != executable: continue
       _squeue_jobExes_dict[_i_squeue_cmd_pieces[0]] = ' '.join(_i_squeue_cmd_pieces[1:])
