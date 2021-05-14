@@ -49,7 +49,7 @@ but they are currently under-tested,
 as the development is mainly done at `T3_PSI_CH`.
 
 The commands below show an example of this type of workflow;
-in this example, the script `test/prod/bjobs_Phase2_D76vD78_210514.sh`
+in this example, the script `test/prod/bjobs_Phase2_trkGeomsSensorTF_210514.sh`
 serves as a wrapper calling `bdriver` for a certain group of DAS samples.
 Such a wrapper represents a "production",
 i.e. the execution of a given analysis (i.e. cfg file + cmd-line args)
@@ -62,10 +62,10 @@ and configuration file (+ its command-line arguments).
 outdir=/pnfs/psi.ch/cms/trivcat/store/user/${USER}/test/pvtx/prod/$(date +%y%m%d)_prodTag
 
 # wrapper to create scripts for cmsRun jobs to be submitted to the SLURM batch system
-${CMSSW_BASE}/src/usercode/PrimaryVertexAnalyzer/test/prod/bjobs_Phase2_D76vD78_210514.sh ${outdir}
+${CMSSW_BASE}/src/usercode/PrimaryVertexAnalyzer/test/prod/bjobs_Phase2_trkGeomsSensorTF_210514.sh ${outdir}
 
 # run one job locally
-SLURM_ARRAY_TASK_ID=6 ${outdir}/Phase2_D76/RelValTenMuExtendedE0To200_mcRun4_D76_NoPU/slurm_exe.sh
+SLURM_ARRAY_TASK_ID=6 $(ls -1 ${outdir}/*/*/slurm_exe.sh | head -1)
 
 # check status of all the tasks prepared by the driver
 bmonitor -i ${outdir}
@@ -76,4 +76,8 @@ bmonitor -i ${outdir} -r -m 100
 
 #### Additional Notes
 
-(under construction)
+ * [CMSWeb Portal](https://cmsweb.cern.ch) (contains links to DAS, DQMs, etc)
+
+ * [CMS Data Aggregation System (DAS)](https://cmsweb.cern.ch/das)
+
+ * CMS Production Monitoring (CMSProdMon): [all active campaigns in production](https://dmytro.web.cern.ch/dmytro/cmsprodmon/status.php)

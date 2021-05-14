@@ -17,10 +17,14 @@ declare -A samplesMap
 
 samplesMap["RelValTenMuExtendedE0To200_mcRun4_D76_NoPU"]="/RelValTenMuExtendedE_0_200/CMSSW_11_3_0_pre6-113X_mcRun4_realistic_v6_2026D76noPU-v1/GEN-SIM-RECO"
 samplesMap["RelValTenMuExtendedE0To200_mcRun4_D78_NoPU"]="/RelValTenMuExtendedE_0_200/CMSSW_11_3_0_pre6-113X_mcRun4_realistic_v6_2026D78noPU-v1/GEN-SIM-RECO"
+samplesMap["RelValTenMuExtendedE0To200_mcRun4_D80_NoPU"]="/RelValTenMuExtendedE_0_200/CMSSW_11_3_0_pre6-113X_mcRun4_realistic_v6_2026D80noPU-v1/GEN-SIM-RECO"
+samplesMap["RelValTenMuExtendedE0To200_mcRun4_D81_NoPU"]="/RelValTenMuExtendedE_0_200/CMSSW_11_3_0_pre6-113X_mcRun4_realistic_v6_2026D81noPU-v1/GEN-SIM-RECO"
 
 recoKeys=(
   Phase2_D76
   Phase2_D78
+  Phase2_D80
+  Phase2_D81
 )
 
 for recoKey in "${recoKeys[@]}"; do
@@ -31,6 +35,8 @@ for recoKey in "${recoKeys[@]}"; do
 
     if [[ ${recoKey} == *D76* ]] && [[ ${sampleKey} != *D76* ]]; then continue; fi;
     if [[ ${recoKey} == *D78* ]] && [[ ${sampleKey} != *D78* ]]; then continue; fi;
+    if [[ ${recoKey} == *D80* ]] && [[ ${sampleKey} != *D80* ]]; then continue; fi;
+    if [[ ${recoKey} == *D81* ]] && [[ ${sampleKey} != *D81* ]]; then continue; fi;
 
     sampleName=${samplesMap[${sampleKey}]}
 

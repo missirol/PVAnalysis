@@ -76,11 +76,11 @@ if opts.reco == 'Phase2_D76':
  --conditions auto:phase2_realistic_T21\
  --era Phase2C11I13M9\
  --geometry Extended2026D76\
+ --filein dbs:/RelValTenMuExtendedE_0_200/CMSSW_11_3_0_pre6-113X_mcRun4_realistic_v6_2026D76noPU-v1/GEN-SIM-RECO\
  --customise SLHCUpgradeSimulations/Configuration/aging.customise_aging_1000\
  --step RECO\
  --processName RERECO\
  --number 10\
- --filein /store/relval/CMSSW_11_3_0_pre6/RelValTenMuExtendedE_0_200/GEN-SIM-RECO/113X_mcRun4_realistic_v6_2026D76noPU-v1/10000/44134f9e-3ebc-4e59-942a-44131f79f61c.root\
  --no_exec\
 """
 
@@ -90,11 +90,37 @@ elif opts.reco == 'Phase2_D78':
  --era Phase2C11I13T22M9\
  --geometry Extended2026D78\
  --procModifier PixelCPEGeneric\
+ --filein dbs:/RelValTenMuExtendedE_0_200/CMSSW_11_3_0_pre6-113X_mcRun4_realistic_v6_2026D78noPU-v1/GEN-SIM-RECO\
  --customise SLHCUpgradeSimulations/Configuration/aging.customise_aging_1000\
  --step RECO\
  --processName RERECO\
  --number 10\
- --filein /store/relval/CMSSW_11_3_0_pre6/RelValTenMuExtendedE_0_200/GEN-SIM-RECO/113X_mcRun4_realistic_v6_2026D78noPU-v1/10000/577041a5-3d32-453c-bc9b-dc530c302ad2.root\
+ --no_exec\
+"""
+
+elif opts.reco == 'Phase2_D80':
+  cmsDriverCmd = """cmsDriver.py step3\
+ --conditions auto:phase2_realistic_T25\
+ --era Phase2C11I13T25M9\
+ --geometry Extended2026D80\
+ --filein dbs:/RelValTenMuExtendedE_0_200/CMSSW_11_3_0_pre6-113X_mcRun4_realistic_v6_2026D80noPU-v1/GEN-SIM-RECO\
+ --customise SLHCUpgradeSimulations/Configuration/aging.customise_aging_1000\
+ --step RECO\
+ --processName RERECO\
+ --number 10\
+ --no_exec\
+"""
+
+elif opts.reco == 'Phase2_D81':
+  cmsDriverCmd = """cmsDriver.py step3\
+ --conditions auto:phase2_realistic_T26\
+ --era Phase2C11I13T26M9\
+ --geometry Extended2026D81\
+ --filein dbs:/RelValTenMuExtendedE_0_200/CMSSW_11_3_0_pre6-113X_mcRun4_realistic_v6_2026D81noPU-v1/GEN-SIM-RECO\
+ --customise SLHCUpgradeSimulations/Configuration/aging.customise_aging_1000\
+ --step RECO\
+ --processName RERECO\
+ --number 10\
  --no_exec\
 """
 
@@ -109,10 +135,6 @@ import os
 EXE(cmsDriverCmd+' --python_filename '+os.path.dirname(__file__)+'/tmp_cfg.py')
 from tmp_cfg import cms, process
 for _tmpf in glob.glob(os.path.dirname(__file__)+'/tmp_cfg.py*'): os.remove(_tmpf)
-
-# use all input files of the dataset
-from usercode.PrimaryVertexAnalyzer.utils.das import *
-process.source.fileNames = files_from_dataset(dataset_from_file(process.source.fileNames[0]))
 
 # remove OutputModules of base configuration
 for _modname in process.outputModules_():
