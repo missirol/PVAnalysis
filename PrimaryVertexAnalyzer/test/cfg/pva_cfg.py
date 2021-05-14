@@ -29,7 +29,7 @@ opts.register('lumis', None,
               vpo.VarParsing.varType.string,
               'path to .json with list of luminosity sections')
 
-opts.register('wantSummary', False,
+opts.register('wantSummary', True,
               vpo.VarParsing.multiplicity.singleton,
               vpo.VarParsing.varType.bool,
               'show cmsRun summary at job completion')
@@ -132,14 +132,15 @@ elif opts.reco == 'Phase2_D81':
 else:
   raise RuntimeError('invalid argument for option "reco": "'+opts.reco+'"')
 
+# create, load and remove the configuration file
 from usercode.PrimaryVertexAnalyzer.utils.common import *
 import glob
 import os
 
-# create, load and remove the configuration file
-EXE(cmsDriverCmd+' --python_filename '+os.path.dirname(__file__)+'/tmp_cfg.py')
+cfg_filepath = os.environ['CMSSW_BASE']+'/python/tmp_cfg.py'
+EXE(cmsDriverCmd+' --python_filename '+cfg_filepath)
 from tmp_cfg import cms, process
-for _tmpf in glob.glob(os.path.dirname(__file__)+'/tmp_cfg.py*'): os.remove(_tmpf)
+for _tmpf in glob.glob(cfg_filepath+'*'): os.remove(_tmpf)
 
 # remove OutputModules of base configuration
 for _modname in process.outputModules_():
@@ -330,11 +331,8 @@ process.source.secondaryFileNames = opts.secondaryInputFiles if opts.secondaryIn
 #process.TFileService = cms.Service('TFileService', fileName = cms.string(opts.output))
 
 if opts.fastTimer:
-  from HLTrigger.Timer.FastTimerService_cfi import FastTimerService as _FastTimerService
-  process.FastTimerService = _FastTimerService.clone()
-  process.FastTimerService.printEventSummary = False
-  process.FastTimerService.printRunSummary = False
-  process.FastTimerService.printJobSummary = True
+  from HLTrigger.Timer.FastTimer import customise_timer_service_print
+  process = customise_timer_service_print(process)
   process.FastTimerService.enableDQM = False
 
 if opts.pruneProcess:
