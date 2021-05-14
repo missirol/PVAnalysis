@@ -325,10 +325,10 @@ if __name__ == '__main__':
    parser.add_argument('--slurm-exe', dest='slurm_exe', action='store', default='slurm_exe.sh',
                        help='basename of SLURM job executable file (default: "slurm_exe.sh")')
 
-   parser.add_argument('--memory', dest='memory', action='store', type=int, default=None, required=False,
+   parser.add_argument('--memory', dest='memory', action='store', default=None, required=False,
                        help='argument of HTCondor parameter "RequestMemory"')
 
-   parser.add_argument('--runtime', dest='runtime', action='store', type=int, default=None, required=False,
+   parser.add_argument('--time', dest='runtime', action='store', default=None, required=False,
                        help='argument of HTCondor parameter "+RequestRuntime"')
 
    parser.add_argument('--jobflavour', dest='jobflavour', action='store', type=str, default=None, required=False,
