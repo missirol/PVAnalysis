@@ -2,7 +2,7 @@
 import ROOT
 import ctypes
 
-from utils import *
+from common import *
 
 def color(hexc):
     return ROOT.TColor.GetColor(hexc)
