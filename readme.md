@@ -2,7 +2,7 @@
 
 * [Setup](#setup)
 * [Configuration files](#configuration-files)
-* [Batch-job workflow at PSI's Tier-3](#batch-job-workflow-at-psis-tier-3)
+* [Batch processing at PSI's Tier-3](#batch-processing-at-psis-tier-3)
 * [Additional Notes](#additional-notes)
 
 ----------
