@@ -170,7 +170,7 @@ def plot_pvResolutions(**kwargs):
       hgroup[_tmpDset['name']].SetMarkerColor(_tmpDset['color'])
       hgroup[_tmpDset['name']].Draw('hist,e0,same')
 
-    topLabel = ROOT.TPaveText(0.165, 0.85, 0.55, 0.90, 'NDC')
+    topLabel = ROOT.TPaveText(0.165, 0.85, 0.65, 0.90, 'NDC')
     topLabel.SetFillColor(0)
     topLabel.SetFillStyle(1001)
     topLabel.SetTextColor(ROOT.kBlack)
@@ -300,12 +300,12 @@ if __name__ == '__main__':
     'offlinePrimaryVerticesWithBS',
   ]:
     for _tmpf in [
-      'Phase2_D76/RelValTenMuExtendedE0To200_mcRun4_D76_NoPU.root',
-      'Phase2_D78/RelValTenMuExtendedE0To200_mcRun4_D78_NoPU.root',
-      'Phase2_D80/RelValTenMuExtendedE0To200_mcRun4_D80_NoPU.root',
-      'Phase2_D81/RelValTenMuExtendedE0To200_mcRun4_D81_NoPU.root',
+      '/Phase2_D76/RelValTenMuExtendedE0To200_mcRun4_D76_NoPU.root',
+      '/Phase2_D78/RelValTenMuExtendedE0To200_mcRun4_D78_NoPU.root',
+      '/Phase2_D80/RelValTenMuExtendedE0To200_mcRun4_D80_NoPU.root',
+      '/Phase2_D81/RelValTenMuExtendedE0To200_mcRun4_D81_NoPU.root',
     ]:
-      print_pvEfficiencies(**{'filename': inputDir+'/'+_tmpf, 'pvColl': pvColl})
+      print_pvEfficiencies(**{'filename': inputDir+_tmpf, 'pvColl': pvColl})
 
     plot_pvResolutions(
       inputDatasets = [
