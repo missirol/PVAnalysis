@@ -17,7 +17,7 @@ eval `scram runtime -sh`
 
 git clone https://github.com/missirol/PVAnalysis.git usercode -o missirol -b devel3
 
-scram b -j 4
+scram b -j 8
 ```
 
 #### Configuration files

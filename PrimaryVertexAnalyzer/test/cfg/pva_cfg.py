@@ -76,7 +76,38 @@ if opts.globalTag is not None:
 ###
 ### base configuration file
 ###
-if opts.reco == 'Phase2_D76':
+if opts.reco == 'Phase2_D64':
+  cmsDriverCmd = """cmsDriver.py step2\
+ --conditions auto:phase2_realistic_T22\
+ --era Phase2C11T22\
+ --geometry Extended2026D64\
+ --pileup AVE_200_BX_25ns\
+ --pileup_input das:/RelValMinBias_14TeV/CMSSW_11_3_0_pre3-113X_mcRun4_realistic_v3_2026D64noPU-v1/GEN-SIM\
+ --filein dbs:/RelValTTbar_14TeV/CMSSW_11_3_0_pre3-PU_113X_mcRun4_realistic_v3_2026D64PU-v2/GEN-SIM-RECO\
+ --customise SLHCUpgradeSimulations/Configuration/aging.customise_aging_1000\
+ --procModifier PixelCPEGeneric\
+ --step RECO\
+ --processName RERECO\
+ --number 10\
+ --no_exec\
+"""
+
+elif opts.reco == 'Phase2_D66':
+  cmsDriverCmd = """cmsDriver.py step2\
+ --conditions auto:phase2_realistic_T21\
+ --era Phase2C11\
+ --geometry Extended2026D66\
+ --pileup AVE_200_BX_25ns\
+ --pileup_input das:/RelValMinBias_14TeV/CMSSW_11_3_0_pre3-113X_mcRun4_realistic_v3_2026D66noPU-v1/GEN-SIM\
+ --filein dbs:/RelValTTbar_14TeV/CMSSW_11_3_0_pre3-PU_113X_mcRun4_realistic_v3_2026D66PU-v2/GEN-SIM-RECO\
+ --customise SLHCUpgradeSimulations/Configuration/aging.customise_aging_1000\
+ --step RECO\
+ --processName RERECO\
+ --number 10\
+ --no_exec\
+"""
+
+elif opts.reco == 'Phase2_D76':
   cmsDriverCmd = """cmsDriver.py step3\
  --conditions auto:phase2_realistic_T21\
  --era Phase2C11I13M9\
