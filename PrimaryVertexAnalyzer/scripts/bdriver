@@ -61,7 +61,7 @@ if __name__ == '__main__':
    parser.add_argument('-t', '--time', dest='time', action='store', default='01:00:00',
                        help='job runtime (HTCondor: "+RequestRuntime"; SLURM: "--time")')
 
-   parser.add_argument('-q', '--queue', dest='queue', action='store', default='wn',
+   parser.add_argument('-q', '--queue', dest='queue', action='store', default='standard',
                        help='name of partition on the batch system (SLURM: "--partition")')
 
    parser.add_argument('--JobFlavour', dest='JobFlavour', action='store', default=None,
@@ -153,25 +153,26 @@ if __name__ == '__main__':
    input_dset = {}
 
    if os.path.isfile(opts.dataset):
-      input_dset = skim_das_jsondump(file_path=opts.dataset, max_files=opts.max_files, max_events=opts.max_events, verbose=(opts.verbosity > 0))
+     input_dset = skim_das_jsondump(file_path=opts.dataset, max_files=opts.max_files, max_events=opts.max_events, verbose=(opts.verbosity > 0))
    else:
-      which('dasgoclient')
-      input_dset = load_dataset_data(das_name=opts.dataset, max_files=opts.max_files, max_events=opts.max_events, parentFiles_levels=opts.parentFiles_level, verbose=(opts.verbosity > 0))
+     which('dasgoclient')
+     input_dset = load_dataset_data(das_name=opts.dataset, max_files=opts.max_files, max_events=opts.max_events, parentFiles_levels=opts.parentFiles_level, verbose=(opts.verbosity > 0))
 
    ### total number of events and jobs
    ### -> used to determine format of output-file name
    nJobs, totEvents, breakLoop = 0, 0, False
    for i_inpfdc in input_dset['files']:
-       i_nevents = i_inpfdc['nevents']
-       totEvents += i_nevents
-       if (opts.max_events > 0) and (totEvents >= opts.max_events):
-          i_nevents -= (totEvents - opts.max_events)
-          breakLoop = True
-       nJobs += int(math.ceil(float(i_nevents) / opts.n_events)) if (opts.n_events > 0) else 1
-       if breakLoop:
-          break
+     i_nevents = i_inpfdc['nevents']
+     totEvents += i_nevents
+     if (opts.max_events > 0) and (totEvents >= opts.max_events):
+       i_nevents -= (totEvents - opts.max_events)
+       breakLoop = True
+     nJobs += int(math.ceil(float(i_nevents) / opts.n_events)) if (opts.n_events > 0) else 1
+     if breakLoop:
+       break
    if nJobs == 0:
-      KILL(log_prx+'input error: expected number of batch jobs is zero (check input data set and number of events): '+opts.dataset)
+     KILL(log_prx+'input error: expected number of batch jobs is zero (check input data set and number of events): '+opts.dataset)
+
    jobIndex_nDigits = max(1, int(math.ceil(math.log10(nJobs))))
    outputname_postfix_format = '_{:0'+str(jobIndex_nDigits)+'d}'
    del nJobs, totEvents, breakLoop
@@ -305,24 +306,24 @@ if pvaCounter > 1:
      ]
 
      if opts.JobFlavour is not None:
-        JobFlavour = opts.JobFlavour
-        while JobFlavour.startswith("'") or JobFlavour.startswith('"'):
-          JobFlavour = JobFlavour[1:]
-        while JobFlavour.endswith("'") or JobFlavour.endswith('"'):
-          JobFlavour = JobFlavour[:-1]
-        SUBFILE_LINES += [
-          '+JobFlavour = "{:}"'.format(JobFlavour)
-        ]
+       JobFlavour = opts.JobFlavour
+       while JobFlavour.startswith("'") or JobFlavour.startswith('"'):
+         JobFlavour = JobFlavour[1:]
+       while JobFlavour.endswith("'") or JobFlavour.endswith('"'):
+         JobFlavour = JobFlavour[:-1]
+       SUBFILE_LINES += [
+         '+JobFlavour = "{:}"'.format(JobFlavour)
+       ]
 
      if opts.AccountingGroup is not None:
-        AccountingGroup = opts.AccountingGroup
-        while AccountingGroup.startswith("'") or AccountingGroup.startswith('"'):
-          AccountingGroup = AccountingGroup[1:]
-        while AccountingGroup.endswith("'") or AccountingGroup.endswith('"'):
-          AccountingGroup = AccountingGroup[:-1]
-        SUBFILE_LINES += [
-          '+AccountingGroup = "{:}"'.format(AccountingGroup)
-        ]
+       AccountingGroup = opts.AccountingGroup
+       while AccountingGroup.startswith("'") or AccountingGroup.startswith('"'):
+         AccountingGroup = AccountingGroup[1:]
+       while AccountingGroup.endswith("'") or AccountingGroup.endswith('"'):
+         AccountingGroup = AccountingGroup[:-1]
+       SUBFILE_LINES += [
+         '+AccountingGroup = "{:}"'.format(AccountingGroup)
+       ]
 
      SUBFILE_LINES += [
        'x509userproxy = $(BASEDIR)/X509_USER_PROXY',
