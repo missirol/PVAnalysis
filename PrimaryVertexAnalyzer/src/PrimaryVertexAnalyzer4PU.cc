@@ -199,7 +199,7 @@ PrimaryVertexAnalyzer4PU::PrimaryVertexAnalyzer4PU(const ParameterSet& iConfig)
   fill_track_histos_ = iConfig.getUntrackedParameter<bool>("fill_track_histos", false);
   selNdofNoBS_ = iConfig.getUntrackedParameter<double>("selNdof", 4.);
   std::cout << "selNDof_(noBS) = " << selNdofNoBS_ << std::endl;
-  selNdofWithBS_ = iConfig.getUntrackedParameter<double>("selNdofWithBS", 2.);
+  selNdofWithBS_ = iConfig.getUntrackedParameter<double>("selNdofWithBS", 6.);
   std::cout << "selNDofWithBS_ = " << selNdofWithBS_ << std::endl;
   selNdof_ = selNdofNoBS_; // to be changed later according to the collection name
   ndof0trk_ = 0.;
@@ -6655,10 +6655,10 @@ void PrimaryVertexAnalyzer4PU::analyze(const Event& iEvent, const EventSetup& iS
 
     if (vCollection->find("WithBS") !=std::string::npos){
       selNdof_ = selNdofWithBS_;
-      ndof0trk_ = -1.;
+      ndof0trk_ = f4D ? -2 : -1.;
     }else{
       selNdof_ = selNdofNoBS_;
-      ndof0trk_ = -3.;
+      ndof0trk_ = f4D ? -4 : -3.;
     }
 
     Handle<reco::VertexCollection> recVtxsH;
@@ -6722,10 +6722,10 @@ void PrimaryVertexAnalyzer4PU::analyze(const Event& iEvent, const EventSetup& iS
     // replace by set_ndof_globals(*vCollection);
     if (vCollection->find("WithBS") !=std::string::npos){
       selNdof_ = selNdofWithBS_;
-      ndof0trk_ = -1.;
+      ndof0trk_ = f4D ? -2. : -1.;
     }else{
       selNdof_ = selNdofNoBS_;
-      ndof0trk_ = -3.;
+      ndof0trk_ = f4D ? -4. : -3.;
     }
 
     // set up the track-> vertex map
